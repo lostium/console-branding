@@ -1,0 +1,7 @@
+node_modules/
+coverage/
+*.tsbuildinfo
+.DS_Store
+
+# dist/ NO se ignora a propósito: el paquete se instala desde git y el
+# compilado tiene que viajar en el repo.

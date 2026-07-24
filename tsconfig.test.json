@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // Solo comprueba tipos, así que abarca también la config de la raíz.
+    "rootDir": "."
+  },
+  "include": ["src", "vitest.config.ts"],
+  "exclude": []
+}

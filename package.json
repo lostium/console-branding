@@ -1,0 +1,57 @@
+{
+  "name": "@lostium/console-branding",
+  "version": "1.0.0",
+  "description": "Banner de marca de Lostium Innovation Studio para la consola del navegador, en español e inglés.",
+  "keywords": [
+    "lostium",
+    "console",
+    "branding",
+    "banner",
+    "devtools",
+    "easter-egg"
+  ],
+  "license": "MIT",
+  "author": "Lostium Innovation Studio <found@lostium.com> (https://lostium.com)",
+  "homepage": "https://github.com/lostium/console-branding#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lostium/console-branding.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lostium/console-branding/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "pnpm@10.33.2",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "release": "./scripts/release.sh"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  }
+}
