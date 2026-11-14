@@ -26,3 +26,29 @@ jobs:
       - run: pnpm test
 
       - run: pnpm build
+
+  # El repo compila con la última versión de TypeScript, pero los proyectos que
+  # instalan el paquete pueden ir por detrás. Este job comprueba que los .d.ts
+  # publicados siguen siendo legibles para ellos.
+  consumer-types:
+    name: Tipos para TS ${{ matrix.typescript }} + Angular ${{ matrix.angular }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { typescript: "5.5", angular: "19" } # versión mínima admitida
+          - { typescript: "6.0", angular: "22" }
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: ./scripts/check-consumer-types.sh ${{ matrix.typescript }} ${{ matrix.angular }}

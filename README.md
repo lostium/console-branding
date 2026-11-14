@@ -91,7 +91,14 @@ pnpm install
 pnpm test         # vitest
 pnpm typecheck
 pnpm build        # tsc → dist/
+
+# Tipos publicados vistos desde un proyecto con TypeScript/Angular anteriores
+./scripts/check-consumer-types.sh 5.5 19
 ```
+
+CI lanza ese último script con TypeScript 5.5 + Angular 19 (la versión mínima
+admitida) y con TypeScript 6.0 + Angular 22, porque el repo compila con
+TypeScript 7 y los proyectos que instalan el paquete pueden ir por detrás.
 
 `dist/` no se commitea: se genera en CI justo antes de publicar en npm.
 
