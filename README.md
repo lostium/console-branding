@@ -19,24 +19,9 @@ React, Vue o en un `<script type="module">`.
 
 ## Instalación
 
-El paquete no se publica en npm; se instala desde una etiqueta de este repo:
-
 ```bash
-pnpm add github:lostium/console-branding#v1.0.0
+pnpm add @lostium/console-branding
 ```
-
-Eso deja en tu `package.json`:
-
-```json
-{
-  "dependencies": {
-    "@lostium/console-branding": "github:lostium/console-branding#v1.0.0"
-  }
-}
-```
-
-Fija siempre una etiqueta concreta. Sin ella instalarías `main`, que cambia sin
-previo aviso.
 
 ## Uso
 
@@ -52,25 +37,28 @@ protegerla: en SSR o en un test de Node simplemente no imprime.
 
 ### Angular
 
-Llámala una sola vez, cuando la aplicación ya ha renderizado:
+Añade `provideLostiumBranding()` a los providers de la aplicación:
 
 ```ts
-import { afterNextRender, Component } from "@angular/core";
-import { printLostiumBranding } from "@lostium/console-branding";
+// app.config.ts
+import type { ApplicationConfig } from "@angular/core";
+import { provideLostiumBranding } from "@lostium/console-branding/angular";
 
-@Component({ selector: "app-root", template: `<router-outlet />` })
-export class App {
-  constructor() {
-    afterNextRender(() => printLostiumBranding());
-  }
-}
+export const appConfig: ApplicationConfig = {
+  providers: [provideLostiumBranding()],
+};
 ```
 
-En una aplicación con i18n, pásale el idioma que estés sirviendo:
+- Imprime el banner una sola vez, cuando la aplicación termina su primer render.
+- El idioma sale del `LOCALE_ID`: `en`, `en-US`… → inglés; cualquier otro →
+  español. Para forzarlo: `provideLostiumBranding({ language: "en" })`.
+- **SSR:** en el servidor no hace nada. Solo actúa cuando `PLATFORM_ID` es el
+  del navegador y espera a `afterNextRender`, que nunca se ejecuta en el
+  servidor. No hace falta ninguna protección extra en `app.config.server.ts`.
 
-```ts
-afterNextRender(() => printLostiumBranding($localize.locale?.startsWith("en") ? "en" : "es"));
-```
+Requiere Angular 19 o superior. `@angular/core` es una `peerDependency`
+opcional: si usas el paquete sin Angular (React, Vue, vanilla) no se instala
+ni se carga nada de Angular, porque la entrada principal no lo importa.
 
 ## API
 
@@ -83,6 +71,14 @@ Escribe el banner en la consola.
 | `language` | `"es"` \| `"en"`   | `"es"`      | Idioma en el que se imprime.   |
 
 No devuelve nada y no lanza nunca.
+
+### `provideLostiumBranding(options?)`
+
+Desde `@lostium/console-branding/angular`. Devuelve `EnvironmentProviders`.
+
+| Opción     | Tipo             | Por defecto            | Descripción                  |
+| ---------- | ---------------- | ---------------------- | ---------------------------- |
+| `language` | `"es"` \| `"en"` | Deducido de `LOCALE_ID` | Idioma en el que se imprime. |
 
 ### `LostiumLanguage`
 
@@ -97,21 +93,23 @@ pnpm typecheck
 pnpm build        # tsc → dist/
 ```
 
-El `dist/` **se commitea**: como el paquete se instala desde git, es el
-compilado del repo lo que llega a los proyectos. Un workflow de CI comprueba en
-cada push que `dist/` coincide con lo que sale de `src/`.
+`dist/` no se commitea: se genera en CI justo antes de publicar en npm.
 
 ## Publicar una versión
 
-Documenta el cambio en `CHANGELOG.md` bajo `## [X.Y.Z]` y lanza:
+Documenta el cambio en `CHANGELOG.md` bajo `## [X.Y.Z]`, mergea en `main` y
+lanza desde `main`:
 
 ```bash
 ./scripts/release.sh 1.1.0
 ```
 
-El script verifica el árbol de trabajo y la rama, pasa tipos y tests, compila,
-sube la versión del `package.json`, commitea el `dist/`, crea la etiqueta
-`v1.1.0` y ofrece hacer push.
+El script comprueba la rama, el árbol de trabajo y el CHANGELOG, sube la
+versión del `package.json`, crea la etiqueta `v1.1.0` y ofrece hacer push. Al
+llegar la etiqueta a GitHub, el workflow `publish.yml` verifica que coincide
+con el `package.json`, pasa tipos y tests, compila y publica en npm con
+[Trusted Publishing](https://docs.npmjs.com/trusted-publishers) y provenance,
+sin tokens.
 
 ## Licencia
 

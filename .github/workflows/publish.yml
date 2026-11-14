@@ -1,0 +1,52 @@
+name: Publish
+
+# Publica en npm al empujar una etiqueta vX.Y.Z (la crea scripts/release.sh).
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # necesario para Trusted Publishing (OIDC) y provenance
+    steps:
+      - uses: actions/checkout@v7
+
+      # Falla antes de compilar si la etiqueta no coincide con package.json.
+      # Si no, una etiqueta equivocada llegaría a `npm publish`, que rechazaría
+      # una versión duplicada o publicaría la que no es.
+      - name: Comprobar que la etiqueta coincide con package.json
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          EXPECTED="v$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$EXPECTED" ]; then
+            echo "::error::La etiqueta '$TAG' no coincide con la versión de package.json ('$EXPECTED')."
+            exit 1
+          fi
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+
+      - run: pnpm test
+
+      - run: pnpm build
+
+      # Trusted Publishing (OIDC), sin NPM_TOKEN: npm >= 11.5.1 cambia el
+      # id-token de GitHub Actions por una credencial de un solo uso y adjunta
+      # la provenance. Requiere un Trusted Publisher configurado en npmjs.com
+      # para este repo y este fichero (publish.yml). Se usa npm y no pnpm
+      # porque el intercambio OIDC lo implementa el CLI de npm.
+      - run: npm install -g npm@latest
+      - run: npm publish --provenance --access public
