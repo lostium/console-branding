@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# Único camino soportado para publicar una versión.
+# Único camino soportado para sacar una versión.
 #
-# Compila, verifica y taggea en un solo paso, de forma que el `dist/` que se
-# commitea siempre corresponde al `src/` de esa etiqueta: es lo que garantiza
-# que un proyecto que instale `github:lostium/console-branding#vX.Y.Z` reciba
-# el código correcto.
+# Sube la versión del package.json, la commitea, crea la etiqueta vX.Y.Z y
+# ofrece hacer push. El push de la etiqueta dispara el workflow
+# .github/workflows/publish.yml, que comprueba tipos, pasa los tests, compila
+# y publica en npm con provenance. Este script no compila ni publica nada.
 #
 # Uso: ./scripts/release.sh 1.1.0
 
@@ -33,22 +33,12 @@ git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null && die "La etiqueta v
 grep -q "## \[$VERSION\]" CHANGELOG.md ||
   die "CHANGELOG.md no documenta la versión $VERSION. Añade su sección '## [$VERSION]' antes de publicar"
 
-echo "▸ Comprobando tipos…"
-pnpm typecheck
-
-echo "▸ Ejecutando tests…"
-pnpm test
-
-echo "▸ Compilando…"
-rm -rf dist
-pnpm build
-
 echo "▸ Fijando la versión…"
-npm pkg set "version=$VERSION"
+pnpm version "$VERSION" --no-git-tag-version --allow-same-version >/dev/null
 
-git add package.json dist CHANGELOG.md
+git add package.json
 if git diff --cached --quiet; then
-  echo "· El árbol ya está en la versión $VERSION y el dist/ al día: solo se etiqueta."
+  echo "· El package.json ya está en la versión $VERSION: solo se etiqueta."
 else
   git commit -m "chore(release): v$VERSION"
 fi
@@ -56,10 +46,10 @@ git tag -a "v$VERSION" -m "v$VERSION"
 
 echo
 echo "✓ v$VERSION lista en local."
-read -r -p "¿Publicar en GitHub (git push --follow-tags)? [y/N] " answer
+read -r -p "¿Hacer push (git push --follow-tags)? Eso publica en npm desde CI. [y/N] " answer
 if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
   git push --follow-tags
-  echo "✓ v$VERSION publicada."
+  echo "✓ v$VERSION enviada. Sigue la publicación en la pestaña Actions de GitHub."
 else
   echo "· Push omitido. Cuando quieras: git push --follow-tags"
 fi

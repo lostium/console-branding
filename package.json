@@ -28,6 +28,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./angular": {
+      "types": "./dist/angular.d.ts",
+      "default": "./dist/angular.js"
     }
   },
   "files": [
@@ -40,16 +44,34 @@
     "node": ">=22.0.0"
   },
   "packageManager": "pnpm@10.33.2",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "rm -rf dist && tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.test.json",
+    "prepublishOnly": "pnpm build",
     "release": "./scripts/release.sh"
   },
+  "peerDependencies": {
+    "@angular/core": ">=19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@angular/core": {
+      "optional": true
+    }
+  },
   "devDependencies": {
-    "typescript": "~5.9.3",
-    "vitest": "^3.2.4"
+    "@angular/common": "^22.2.6",
+    "@angular/core": "^22.2.6",
+    "@angular/platform-browser": "^22.2.6",
+    "jsdom": "^31.0.1",
+    "rxjs": "^7.8.2",
+    "typescript": "~7.0.2",
+    "vitest": "^5.1.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
